@@ -1,0 +1,37 @@
+{
+    "manifest_version": 2,
+    "name": "Optical Character Recognition",
+    "short_name": "OCR",
+    "version": "1.0.0",
+    "author": "Ken Chong",
+    "description": "Testing OCR on a chrome-extension.",
+    "icons": {
+      "48": "images/logo48.png",
+      "128": "images/logo128.png"
+    },
+    "background": {
+      "page": "background.html"
+    },
+    "content_scripts": [
+      {
+        "matches": [
+          "<all_urls>"
+        ],
+        "js": [
+          "content.js"
+        ],
+        "all_frames": true
+      }
+    ],
+    "permissions": [
+      "contextMenus",
+      "tabs"
+    ],
+    "web_accessible_resources": [
+      "css/*",
+      "js/*",
+      "images/*"
+    ],
+    "content_security_policy": "script-src 'self' 'wasm-eval'; script-src-elem 'self' https://unpkg.com/tesseract.js@v2.0.0/dist/worker.min.js https://unpkg.com/tesseract.js-core@v2.0.0/tesseract-core.wasm.js https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js https://unpkg.com/tesseract.js@v2.0.0/dist/worker.min.js.map chrome-extension://eekojigebkjheipeeeonmnciigbdomnc/js/worker.min.js; object-src 'self'"
+  }
+  
