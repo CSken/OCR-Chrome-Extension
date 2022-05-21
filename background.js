@@ -30,8 +30,8 @@ chrome.runtime.onMessage.addListener((message, sender, response) => {
                     ocrActivated = true;
 
                     worker = createWorker({
-                        workerPath: './js/worker.min.js',
-                        langPath: './traineddata',
+                        workerPath: 'https://unpkg.com/tesseract.js@v2.0.0/dist/worker.min.js',
+                        langPath: '/traineddata',
                         corePath: 'https://unpkg.com/tesseract.js-core@v2.0.0/tesseract-core.wasm.js',
                     });
 
@@ -57,14 +57,17 @@ chrome.runtime.onMessage.addListener((message, sender, response) => {
 
             (async () => {    
                 try {                        
-                    const { data } = await worker.recognize(message.image);
+                    const { data: { words } } = await worker.recognize(message.image);
                     performingOCR = false;
                     
-                    console.log(data);
-                    response(data);
+                    console.log(words);
+                    const wordsJSON = JSON.stringify(words, null, 2);
+                    let dataBlob = new Blob([wordsJSON], {type: 'application/json'});
+                    let dataURL = URL.createObjectURL(dataBlob);
+                    response(dataURL);
                 } catch (err) { 
-                    console.log(err);// it receives the error but no response?
-                    response(err);
+                    console.log(err);
+                    response(URL.createObjectURL(new Blob([JSON.stringify({success: false})]), {type: 'application/json'}));
                 }
             })();
         }
