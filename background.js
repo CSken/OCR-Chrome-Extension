@@ -52,24 +52,49 @@ chrome.runtime.onMessage.addListener((message, sender, response) => {
             
             if(performingOCR) return;
             performingOCR = true;
+            console.log(message.rectangle);
 
             console.log('ocr executed');
+            console.log(message.image);
 
-            (async () => {    
-                try {                        
-                    const { data: { words } } = await worker.recognize(message.image);
-                    performingOCR = false;
-                    
-                    console.log(words);
-                    const wordsJSON = JSON.stringify(words, null, 2);
-                    let dataBlob = new Blob([wordsJSON], {type: 'application/json'});
-                    let dataURL = URL.createObjectURL(dataBlob);
-                    response(dataURL);
-                } catch (err) { 
-                    console.log(err);
-                    response(URL.createObjectURL(new Blob([JSON.stringify({success: false})]), {type: 'application/json'}));
-                }
-            })();
+            const img = new Image();
+            img.src = message.image;
+            img.onload = () => {
+                (async () => {    
+                    try {
+                        const rectangle = message.rectangle;
+                        var tempCanvas = document.createElement('canvas');
+                        tempCanvas.width = rectangle.width;
+                        tempCanvas.height = rectangle.height;
+                        var context = tempCanvas.getContext('2d');       
+                        context.drawImage(img, -rectangle.left, -rectangle.top);        
+                        const { data: { words } } = await worker.recognize(tempCanvas);
+                        performingOCR = false;
+                        
+                        console.log(words);
+                        //filters out non chinese characters
+                        let wordsFiltered = words.filter(word => {
+                            let u = word.text.charCodeAt(0);
+
+                            return !(isNaN(u) || 
+                                        (u !== 0x25CB &&
+                                        (u < 0x3400 || 0x9FFF < u) &&
+                                        (u < 0xF900 || 0xFAFF < u) &&
+                                        (u < 0xFF21 || 0xFF3A < u) &&
+                                        (u < 0xFF41 || 0xFF5A < u)));
+                        });
+                        console.log(wordsFiltered);
+
+                        const wordsJSON = JSON.stringify(wordsFiltered, null, 2);
+                        let dataBlob = new Blob([wordsJSON], {type: 'application/json'});
+                        let dataURL = URL.createObjectURL(dataBlob);
+                        response(dataURL);
+                    } catch (err) { 
+                        console.log(err);
+                        response(URL.createObjectURL(new Blob([JSON.stringify({success: false})]), {type: 'application/json'}));
+                    }
+                })();
+            }
         }
             break;
     }
