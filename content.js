@@ -12,12 +12,8 @@ let x, y;
 
 function enableTab() {
     
-    console.log('content working');
     document.addEventListener('keydown', (e) => {
 
-        if(e.altKey) {
-            console.log('alt pressed');
-        }
 
         if(e.shiftKey && !e.repeat) {
             x0 = x;
@@ -52,7 +48,6 @@ function enableTab() {
                 doOCR(img, rectangle);
             }
             hideCursor();
-            console.log('cursor hidden');
         }
     });
 
@@ -78,20 +73,9 @@ function onMouseMoveOCR(mouseMove) {
         cursor.style.position = 'absolute';
         
 
-        switch (mouseMove.target.nodeName) {
-            case 'IMG':
-                img = mouseMove.target;
-                cursor.style.display = ''; 
-                let imgSRC = img.src;
-
-                if(!imgSRC.includes('.png') && !imgSRC.includes('.jpg') && !imgSRC.includes('.jpeg')) {
-                    hideCursor();
-                    console.log('cursor hidden 71');
-                    return; 
-                }
-
-                break;
-            default:
+        if(mouseMove.target.nodeName == 'IMG') {
+            cursor.style.display = '';
+            img = mouseMove.target;
         }
 
     if(mouseMove.shiftKey) {
@@ -145,7 +129,6 @@ function updateOCR() {
     } else {
         document.removeEventListener('mousemove', onMouseMoveOCR);
         hideCursor();
-        console.log('cursor hidden 103');
     }
 }
 
@@ -181,7 +164,6 @@ function hideCursor() {
 
 
 function doOCR(inputIMG, rectangle) {
-    console.log(rectangle);
     performingOCR = true;
     let tempImg = new Image();
     tempImg.src = inputIMG.src;
@@ -195,26 +177,22 @@ function doOCR(inputIMG, rectangle) {
         rectangle.left *= horF;
         rectangle.height *= verF;
         rectangle.width *= horF;
-        console.log(rectangle);
 
         chrome.runtime.sendMessage({
             type: 'doOCR',
             image: inputIMG.src,
             rectangle: rectangle
         }, (dataURL) => { 
-                console.log('response received');
                 (async () => {
                 const dataBlob = await fetch(dataURL).then(response => response.blob());
                 URL.revokeObjectURL(dataURL);
                 dataJSON = await (new Response(dataBlob)).text();
                 
                 const data = JSON.parse(dataJSON);
-                console.log(data);
 
                 if(data.success === false) {
                     performingOCR = false;
                     savedImages[inputIMG] = null;
-                    console.log('performing ocr updated ' + performingOCR);
                     return;
                 }
 

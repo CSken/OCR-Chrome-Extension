@@ -52,10 +52,8 @@ chrome.runtime.onMessage.addListener((message, sender, response) => {
             
             if(performingOCR) return;
             performingOCR = true;
-            console.log(message.rectangle);
 
             console.log('ocr executed');
-            console.log(message.image);
 
             const img = new Image();
             img.src = message.image;
@@ -71,7 +69,6 @@ chrome.runtime.onMessage.addListener((message, sender, response) => {
                         const { data: { words } } = await worker.recognize(tempCanvas);
                         performingOCR = false;
                         
-                        console.log(words);
                         //filters out non chinese characters
                         let wordsFiltered = words.filter(word => {
                             let u = word.text.charCodeAt(0);
@@ -83,14 +80,12 @@ chrome.runtime.onMessage.addListener((message, sender, response) => {
                                         (u < 0xFF21 || 0xFF3A < u) &&
                                         (u < 0xFF41 || 0xFF5A < u)));
                         });
-                        console.log(wordsFiltered);
 
                         const wordsJSON = JSON.stringify(wordsFiltered, null, 2);
                         let dataBlob = new Blob([wordsJSON], {type: 'application/json'});
                         let dataURL = URL.createObjectURL(dataBlob);
                         response(dataURL);
                     } catch (err) { 
-                        console.log(err);
                         response(URL.createObjectURL(new Blob([JSON.stringify({success: false})]), {type: 'application/json'}));
                     }
                 })();
