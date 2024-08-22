@@ -6,8 +6,6 @@ ALT + O toggles the extension. After toggling and loading the Tesseract worker, 
 
 After the worker completes OCR, the text data will be displayed over the initial image.
 
-I plan on adding additional features like toggling the text on particular images or adding the functionality to video elements. I additionally plan on implementing this into the Zhongwen Chinese Popup Dictionary chrome extension.
-
 
 Example:
 When OCR is toggled (Note Red Square):
